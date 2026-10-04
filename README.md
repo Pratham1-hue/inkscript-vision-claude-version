@@ -50,7 +50,7 @@ Ensure you have Python 3 installed on your system. No external Python pip packag
 Open your terminal or PowerShell and navigate to your project directory:
 
 ```powershell
-cd "C:\Users\Pratham Prajapati\Machine Learning Projects\Project Jennifer"
+cd "C:\Users\...\\..\Project inkscript"
 
 ```
 
