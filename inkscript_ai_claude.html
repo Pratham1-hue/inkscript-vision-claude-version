@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InkScript AI Research Studio</title>
+    <script>try{if(localStorage.getItem("inkscript_theme")==="dark")document.documentElement.classList.add("dark")}catch(e){}</script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    
+    <!-- KaTeX for Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Marked.js & DOMPurify for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+
+    <!-- Mermaid.js for Diagrams and Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .dark body{background:radial-gradient(1200px 600px at 80% -10%,#1e1b4b55,transparent),#020617}
+        .rich h1{font-size:1.35rem;font-weight:700;margin:.7rem 0 .3rem}.rich h2{font-size:1.15rem;font-weight:600;margin:.6rem 0 .3rem}.rich h3{font-weight:600;margin:.5rem 0 .2rem}
+        .rich ul{list-style:disc;padding-left:1.4rem}.rich p{margin:.25rem 0}.rich strong{font-weight:700}.rich em{font-style:italic}
+        .rich table{border-collapse:collapse;width:100%;margin:.5rem 0;font-size:.85em}.rich th,.rich td{border:1px solid #94a3b8;padding:.35rem .5rem;text-align:left}.rich th{background:rgba(99,102,241,.15);font-weight:600}
+        mark.hl{background:#facc15;color:#000;border-radius:3px}
+        .mermaid { margin: 1rem 0; display: flex; justify-content: center; background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; }
+        @keyframes pulse-subtle { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .animate-pulse-subtle { animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .aiBtn{font-size:.7rem;font-weight:600;padding:.375rem .65rem;border-radius:.6rem;border:1px solid rgb(99 102 241/.4);color:#6366f1}.aiBtn:hover{background:rgb(99 102 241/.12)}.dark .aiBtn{color:#a5b4fc}
+        
+        /* Notebook Mode Specific CSS */
+        .nb{font-family:'Kalam','Segoe Print','Comic Sans MS',cursive}
+        .nb .page{color:#1b2a8a;background:#fdfdfb;margin:0 0 22px;padding:14px 22px 40px 34px;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.25);text-align:left; background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 35px,#b9c2d6 35px,#b9c2d6 36px);background-position:0 62px}
+        .nb .page:before{content:"";position:absolute;left:8px;top:0;bottom:0;width:8px;background:radial-gradient(circle,#333 3px,transparent 4px) 0 8px/8px 26px repeat-y}
+        .nb .hd{text-align:right;font-size:13px;color:#333;height:62px;line-height:22px;font-family:sans-serif}
+        .nb .hd span{display:inline-block;min-width:110px;border-bottom:1px solid #333}
+        .nb .l{min-height:36px;line-height:36px;font-size:19px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;margin:0}
+        .nb .i1{padding-left:34px}.nb .i2{padding-left:68px}.nb .i3{padding-left:102px}
+        .nb .q{text-decoration:underline;font-weight:700;margin-right:8px}
+        .nb .row{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap}
+        .nb .x{color:#c22;font-weight:700}
+        .nb .side{font-size:14px;color:#555}
+        .nb .brand{position:absolute;left:34px;bottom:8px;font:12px sans-serif;color:#555}
+        .nb .d{margin:4px 0}.nb svg{display:inline-block}.nb svg text{font-family:'Kalam',cursive;fill:#1b2a8a}
+        .nb .gap{height:36px}
+        .rich.nb{max-height:80vh!important;background:#d9dde6!important;padding:10px!important}.dark .rich.nb{background:#475569!important}
+        @media(max-width:520px){.nb .l{font-size:16px}.nb .page{padding-left:28px}}
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
+
+    <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-tight bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">InkScript AI</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Claude Multimodal Handwriting Studio</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button id="apiKeyBtn" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-medium border border-indigo-200 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition">
+                    <i data-lucide="key" class="w-3.5 h-3.5"></i>
+                    <span id="apiKeyStatusText">API Key Configured</span>
+                </button>
+                <button id="themeToggleBtn" aria-label="Toggle theme" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-slate-600 dark:text-slate-300">
+                    <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
+                    <i data-lucide="sun" class="w-4 h-4 block dark:hidden"></i>
+                </button>
+                <button id="clearAllBtn" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-medium border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Reset Workspace</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left Panel -->
+        <div class="lg:col-span-5 space-y-6">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                <h2 class="text-base font-semibold mb-3 flex items-center justify-between">
+                    <span class="flex items-center space-x-2">
+                        <i data-lucide="upload-cloud" class="w-5 h-5 text-indigo-500"></i>
+                        <span>Upload Handwritten Note / PDF</span>
+                    </span>
+                    <span class="text-xs px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 font-medium">Claude 5.5 Sonnet</span>
+                </h2>
+                
+                <div id="dropZone" class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 rounded-2xl p-8 text-center cursor-pointer transition bg-slate-50/50 dark:bg-slate-900/50 group">
+                    <input type="file" id="fileInput" class="hidden" accept="image/*,.pdf">
+                    <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition transform shadow-inner">
+                        <i data-lucide="file-up" class="w-7 h-7"></i>
+                    </div>
+                    <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Click to upload or drag & drop</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Supports PNG, JPG, JPEG, and PDF</p>
+                </div>
+
+                <div class="mt-4 space-y-3">
+                    <div>
+                        <label for="transcriptionMode" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Transcription Focus</label>
+                        <select id="transcriptionMode" class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="notebook" selected>Notebook Page (Digital visual replica, Inline SVG graphs)</option>
+                            <option value="cleaned">Clean & Formatted Notes (Markdown, Mermaid.js Graphs)</option>
+                            <option value="verbatim">Verbatim Transcription (Exact words & layout)</option>
+                            <option value="summary">Summary & Action Items</option>
+                            <option value="research">Research Notes (Concepts, claims, open questions)</option>
+                            <option value="structured">Data Extraction (Rebuild tables & Mermaid logic flowcharts)</option>
+                        </select>
+                    </div>
+
+                    <textarea id="customInstr" rows="2" placeholder="Optional custom instructions, e.g. 'Preserve structural formulas', 'Translate to English'" class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                    <button id="startOcrBtn" disabled class="w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 disabled:from-slate-200 disabled:to-slate-200 dark:disabled:from-slate-800 dark:disabled:to-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 text-white font-medium text-sm transition shadow-md shadow-indigo-600/25 disabled:shadow-none cursor-pointer disabled:cursor-not-allowed">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        <span>Transcribe with Claude AI</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preview Card -->
+            <div id="previewCard" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-semibold flex items-center space-x-2">
+                        <i data-lucide="eye" class="w-5 h-5 text-indigo-500"></i>
+                        <span>File Preview</span>
+                    </h3>
+                    <span id="fileNameBadge" class="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono truncate max-w-[150px]"></span>
+                </div>
+                <div class="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 flex items-center justify-center min-h-[220px] max-h-[350px]">
+                    <img id="imagePreview" class="max-h-[340px] w-auto object-contain hidden" alt="Preview">
+                    <div id="pdfPreviewContainer" class="w-full h-full flex flex-col items-center justify-center p-4 hidden">
+                        <i data-lucide="file-text" class="w-12 h-12 text-indigo-500 mb-2"></i>
+                        <p id="pdfPageInfo" class="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">PDF Document</p>
+                        <canvas id="pdfCanvas" class="max-h-[260px] shadow rounded border border-slate-200 dark:border-slate-700"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                <h3 class="text-base font-semibold flex items-center space-x-2 mb-3"><i data-lucide="history" class="w-5 h-5 text-indigo-500"></i><span>Saved Notes</span></h3>
+                <input id="histSearch" oninput="renderHistory()" placeholder="Search saved notes..." class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <div id="histList" class="space-y-2 max-h-56 overflow-y-auto custom-scrollbar text-xs"></div>
+            </div>
+            
+            <div id="progressBox" class="bg-white dark:bg-slate-900 rounded-2xl border border-indigo-200 dark:border-indigo-900/50 p-6 shadow-md shadow-indigo-500/5 hidden">
+                <div class="flex items-center space-x-3 mb-3">
+                    <div class="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 dark:text-indigo-400 animate-spin">
+                        <i data-lucide="loader-2" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-slate-800 dark:text-slate-100" id="progressStatusText">Claude is analyzing...</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400" id="progressDetailText">Reading strokes, rendering graphs...</p>
+                    </div>
+                </div>
+                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                    <div id="progressBar" class="bg-gradient-to-r from-indigo-500 to-violet-600 h-2 rounded-full transition-all duration-300 animate-pulse-subtle" style="width: 75%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="lg:col-span-7 space-y-6">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm flex flex-col min-h-[580px]">
+                
+                <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        </div>
+                        <h2 class="text-base font-semibold">Extracted Document Editor</h2>
+                    </div>
+                    <div class="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                        <button onclick="formatText('bold')" class="p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition"><i data-lucide="bold" class="w-4 h-4"></i></button>
+                        <button onclick="formatText('italic')" class="p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition"><i data-lucide="italic" class="w-4 h-4"></i></button>
+                        <div class="w-px h-4 bg-slate-300 dark:bg-slate-700 mx-1"></div>
+                        <button onclick="insertTag('<h1>', '</h1>')" class="p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition font-bold text-xs">H1</button>
+                        <button onclick="insertTag('<h2>', '</h2>')" class="p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition font-bold text-xs">H2</button>
+                        <div class="w-px h-4 bg-slate-300 dark:bg-slate-700 mx-1"></div>
+                        <button onclick="insertList()" class="p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition"><i data-lucide="list" class="w-4 h-4"></i></button>
+                        <button onclick="clearFormatting()" class="p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-rose-500 transition"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between py-2 text-xs text-slate-500 dark:text-slate-400 font-medium px-1">
+                    <div class="flex space-x-4">
+                        <span>Words: <strong id="wordCount" class="text-slate-700 dark:text-slate-200">0</strong></span>
+                        <span>Chars: <strong id="charCount" class="text-slate-700 dark:text-slate-200">0</strong></span>
+                    </div>
+                    <div class="flex items-center space-x-1 text-emerald-600 dark:text-emerald-400">
+                        <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+                        <span>Claude Powered</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 mb-2">
+                    <input id="findInput" oninput="findInNotes()" placeholder="Find in notes..." class="text-xs w-36 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <span id="findCount" class="text-xs text-slate-500 mr-2"></span>
+                    <button onclick="runAction('summary')" class="aiBtn">Summarize</button>
+                    <button onclick="runAction('terms')" class="aiBtn">Key Terms</button>
+                    <button onclick="runAction('questions')" class="aiBtn">Research Gaps</button>
+                    <button onclick="runAction('citations')" class="aiBtn">Find Citations</button>
+                    <button onclick="runAction('flashcards')" class="aiBtn">Flashcards</button>
+                    <button onclick="runAction('proofread')" class="aiBtn">Fix Unclear</button>
+                </div>
+                
+                <div class="flex-1 my-2 relative">
+                    <div id="editorContent" contenteditable="true" 
+                         class="rich w-full h-full min-h-[320px] max-h-[450px] overflow-y-auto custom-scrollbar p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 leading-relaxed text-sm"
+                         placeholder="Transcribed text, Markdown, and generated graphs will appear here..."></div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="flex gap-2 mb-2">
+                        <input id="askInput" onkeydown="if(event.key==='Enter')askNotes()" placeholder="Ask Claude about these notes..." class="flex-1 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button onclick="askNotes()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-violet-600 hover:bg-violet-700 text-white">Ask AI</button>
+                    </div>
+                    <div id="insights" class="space-y-2 max-h-72 overflow-y-auto custom-scrollbar"></div>
+                </div>
+                
+                <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                    <button onclick="copyToClipboard()" class="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                        <span>Copy Text</span>
+                    </button>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="nbDownload()" class="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition"><span>Save Notebook (HTML)</span></button>
+                        <button onclick="downloadMd()" class="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-semibold border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 transition"><span>Download .MD</span></button>
+                        <button onclick="downloadPdf()" class="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white transition shadow-sm shadow-rose-600/20">
+                            <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                            <span>Download PDF</span>
+                        </button>
+                        <button onclick="saveNote()" class="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-semibold border border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10 transition"><span>Save to Library</span></button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- API Key Modal -->
+    <div id="apiKeyModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-semibold flex items-center space-x-2">
+                    <i data-lucide="key" class="w-5 h-5 text-indigo-500"></i>
+                    <span>Claude API Configuration</span>
+                </h3>
+                <button onclick="toggleApiKeyModal(false)" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+                InkScript AI utilizes Anthropic's Claude 5.5 Sonnet Vision model for precise handwriting extraction and graph generation via direct CORS API requests.
+            </p>
+            <div class="space-y-3 pb-1">
+                <div>
+                    <label for="apiKeyInput" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Your Claude API Key</label>
+                    <input type="password" id="apiKeyInput" placeholder="sk-ant-..." class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <p class="text-[10.5px] text-slate-500 dark:text-slate-400">Your key is stored securely in your browser's local storage.</p>
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="toggleApiKeyModal(false)" class="px-4 py-2 rounded-xl text-xs font-medium border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
+                <button onclick="saveApiKey()" class="px-4 py-2 rounded-xl text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white">Save Key</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-3 rounded-2xl shadow-xl flex items-center space-x-3 text-sm font-medium">
+            <i id="toastIcon" data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+            <span id="toastMessage">Action completed successfully</span>
+        </div>
+    </div>
+
+    <!-- Main Logic Core -->
+    <script>
+        // Initialization
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            mermaid.initialize({ 
+                startOnLoad: false, 
+                theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+                securityLevel: 'loose'
+            });
+            marked.setOptions({ breaks: true, gfm: true });
+        });
+
+        // App State
+        let currentFile = null;
+        let fileType = null; 
+        let pdfDoc = null;
+        let userApiKey = localStorage.getItem('inkscript_claude_key') || "";
+
+        // Elements
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const startOcrBtn = document.getElementById('startOcrBtn');
+        const previewCard = document.getElementById('previewCard');
+        const imagePreview = document.getElementById('imagePreview');
+        const pdfPreviewContainer = document.getElementById('pdfPreviewContainer');
+        const pdfCanvas = document.getElementById('pdfCanvas');
+        const fileNameBadge = document.getElementById('fileNameBadge');
+        const progressBox = document.getElementById('progressBox');
+        const progressBar = document.getElementById('progressBar');
+        const progressStatusText = document.getElementById('progressStatusText');
+        const progressDetailText = document.getElementById('progressDetailText');
+        const editorContent = document.getElementById('editorContent');
+        const wordCountEl = document.getElementById('wordCount');
+        const charCountEl = document.getElementById('charCount');
+        
+        // Notebook Prompt
+        const NB_PROMPT = String.raw`You are converting scanned HANDWRITTEN NOTEBOOK PAGES into a faithful digital notebook. Output ONLY an HTML fragment: no markdown, no code fences, no <html>/<body> tags. Create one <section class="page"> for every page image, in order.
+
+FIDELITY RULES
+- Reproduce EXACTLY what is written, line by line, in the same order and layout. Do NOT solve, correct or improve the math or spelling, even if it looks wrong. Skip crossed-out text. Keep side remarks and margin notes.
+- Every written line is <div class="l">...</div>. Add class i1, i2 or i3 (e.g. <div class="l i2">) for small, medium, large left indentation. An empty ruled line is <div class="gap"></div>.
+- If two items sit side by side on one line: <div class="l row"><span>...</span><span>...</span></div>.
+- Underlined labels such as Ques / Question / Ans: <span class="q">Ques-</span>. Small remarks in brackets: <span class="side">(...)</span>. Keep circled numbers as ① ② ③ ...
+- Start each page with <div class="hd">DATE : <span></span><br>PAGE : <span></span></div> (put handwritten date/page text inside the spans). Any scribble above the header goes at the start of hd followed by <br>.
+
+MATH
+- Write ALL math in LaTeX between single dollar signs $...$ (never $$). Use \dfrac for fractions, \lim_{x\to 0}, \begin{cases}...\end{cases} for piecewise functions, \Rightarrow, \implies, \neq, \pm, \sqrt{}.
+- Never type the characters < or > inside HTML text. In math use \lt \gt \le \ge; in plain text use &lt; &gt; &amp;.
+
+DIAGRAMS, GRAPHS, NUMBER LINES
+- Redraw every diagram as inline SVG inside <div class="d">: <svg width="300" height="190" viewBox="0 0 300 190" role="img" aria-label="short description">. Use <g stroke="#1b2a8a" stroke-width="1.8" fill="none"> for lines, axes with small arrowheads, curves as <path> (use C/Q Bezier), and <text font-size="16"> for labels written on the diagram. Copy the real shape: jumps, breaks, gaps, arrows, dots, labels.
+
+Return the HTML fragment only.`;
+
+        if (userApiKey) {
+            document.getElementById('apiKeyStatusText').textContent = "Custom Key Active";
+            document.getElementById('apiKeyInput').value = userApiKey;
+        }
+
+        function applyKaTeX() {
+            if (window.renderMathInElement) {
+                renderMathInElement(editorContent, {
+                    delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}],
+                    throwOnError: false, output: 'html'
+                });
+            }
+        }
+
+        document.getElementById('themeToggleBtn').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            try { localStorage.setItem('inkscript_theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); } catch (e) {}
+            showToast("Theme updated", "info");
+        });
+
+        // API Key Handling
+        document.getElementById('apiKeyBtn').addEventListener('click', () => toggleApiKeyModal(true));
+        function toggleApiKeyModal(show) {
+            document.getElementById('apiKeyModal').classList.toggle('hidden', !show);
+        }
+        function saveApiKey() {
+            userApiKey = document.getElementById('apiKeyInput').value.trim();
+            if (userApiKey) {
+                localStorage.setItem('inkscript_claude_key', userApiKey);
+                document.getElementById('apiKeyStatusText').textContent = "Custom Key Active";
+                showToast("API key saved securely", "success");
+            } else {
+                localStorage.removeItem('inkscript_claude_key');
+                document.getElementById('apiKeyStatusText').textContent = "API Key Configured";
+                showToast("Key removed", "info");
+            }
+            toggleApiKeyModal(false);
+        }
+
+        // File Upload Handlers
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-indigo-500', 'bg-indigo-50/50'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-indigo-500', 'bg-indigo-50/50'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault(); dropZone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
+            if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) handleFile(e.target.files[0]); });
+
+        function handleFile(file) {
+            currentFile = file; fileNameBadge.textContent = file.name;
+            previewCard.classList.remove('hidden'); startOcrBtn.removeAttribute('disabled');
+            if (file.type.startsWith('image/')) {
+                fileType = 'image'; imagePreview.src = URL.createObjectURL(file);
+                imagePreview.classList.remove('hidden'); pdfPreviewContainer.classList.add('hidden');
+            } else if (file.type === 'application/pdf') {
+                fileType = 'pdf'; imagePreview.classList.add('hidden'); pdfPreviewContainer.classList.remove('hidden');
+                renderPdfPreview(file);
+            } else {
+                showToast("Invalid format", "error"); startOcrBtn.setAttribute('disabled', 'true');
+            }
+        }
+
+        async function renderPdfPreview(file) {
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    pdfDoc = await pdfjsLib.getDocument(new Uint8Array(e.target.result)).promise;
+                    const page = await pdfDoc.getPage(1);
+                    const viewport = page.getViewport({ scale: 1.0 });
+                    const scale = Math.min(250 / viewport.width, 250 / viewport.height);
+                    const scaledViewport = page.getViewport({ scale: scale });
+                    pdfCanvas.height = scaledViewport.height; pdfCanvas.width = scaledViewport.width;
+                    await page.render({ canvasContext: pdfCanvas.getContext('2d'), viewport: scaledViewport }).promise;
+                    document.getElementById('pdfPageInfo').textContent = `PDF Document (${pdfDoc.numPages} Page${pdfDoc.numPages > 1 ? 's' : ''})`;
+                } catch (err) { showToast("Error parsing PDF preview", "error"); }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader(); reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function convertPdfToImages() {
+            const images = []; const totalPages = pdfDoc.numPages;
+            for (let i = 1; i <= totalPages; i++) {
+                progressStatusText.textContent = `Rendering PDF Page ${i} of ${totalPages}...`;
+                const page = await pdfDoc.getPage(i);
+                const viewport = page.getViewport({ scale: 2.0 }); 
+                const canvas = document.createElement('canvas');
+                canvas.height = viewport.height; canvas.width = viewport.width;
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+                images.push(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
+            }
+            return images;
+        }
+
+        async function fetchWithRetry(url, options, retries = 2, delay = 1000) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) { const txt = await response.text(); throw new Error(`HTTP ${response.status}: ${txt}`); }
+                return response;
+            } catch (error) {
+                if (retries > 0) { await new Promise(r => setTimeout(r, delay)); return fetchWithRetry(url, options, retries - 1, delay * 2); }
+                throw error;
+            }
+        }
+
+        // Execution Core
+        startOcrBtn.addEventListener('click', async () => {
+            if (!currentFile) return;
+            if (!userApiKey) {
+                showToast("Please configure your Claude API key first.", "error");
+                toggleApiKeyModal(true); return;
+            }
+
+            progressBox.classList.remove('hidden'); startOcrBtn.setAttribute('disabled', 'true');
+            progressBar.style.width = '20%';
+            progressStatusText.textContent = "Connecting to Claude 5.5 Sonnet...";
+            progressDetailText.textContent = "Preparing visual data...";
+
+            const mode = document.getElementById('transcriptionMode').value;
+            window.lastMode = mode;
+            
+            let systemPrompt = "You are a professional document transcription and OCR specialist. Format the output flawlessly in Markdown.";
+            let promptText = "Accurately transcribe all handwritten or printed text from the provided image(s).\n\nCRITICAL VISUAL RULES:\n1. MATH: Use standard LaTeX syntax ($...$ for inline math and $$...$$ for block equations).\n2. GRAPHS & DIAGRAMS: If you identify charts, workflows, trees, or structural diagrams, reconstruct them perfectly using Mermaid.js syntax inside a ```mermaid codeblock. Include key labels and structural logic.";
+
+            if (mode === 'cleaned') promptText += "\nClean up spelling typos, fix grammatical fragments, and organize clearly with proper Markdown headings and bullets.";
+            else if (mode === 'summary') promptText += "\nAnalyze the notes, transcribe key points, and provide a structured summary with actionable takeaways in Markdown.";
+            else if (mode === 'research') promptText += "\nOrganize as Markdown research notes with sections: ## Key Concepts, ## Claims & Evidence, ## Open Questions. Mark unclear words as [?].";
+            else if (mode === 'structured') promptText += "\nRebuild every table as a Markdown table. Describe visuals using Mermaid.js flowcharts or pie charts.";
+            else if (mode === 'notebook') {
+                systemPrompt = "You are a precise handwriting-to-digital-notebook converter. Output ONLY the requested HTML fragment.";
+                promptText = NB_PROMPT;
+            }
+
+            const ci = document.getElementById('customInstr').value.trim();
+            if (ci) promptText += "\nAdditional user instructions: " + ci;
+
+            try {
+                const userContent = [];
+                if (fileType === 'image') {
+                    progressBar.style.width = '40%';
+                    userContent.push({ type: "image", source: { type: "base64", media_type: currentFile.type || 'image/jpeg', data: await fileToBase64(currentFile) } });
+                } else if (fileType === 'pdf') {
+                    progressBar.style.width = '30%';
+                    const pdfImages = await convertPdfToImages();
+                    pdfImages.forEach((imgData, idx) => {
+                        userContent.push({ type: "text", text: `--- Page ${idx + 1} ---` });
+                        userContent.push({ type: "image", source: { type: "base64", media_type: 'image/jpeg', data: imgData } });
+                    });
+                }
+                userContent.push({ type: "text", text: promptText });
+
+                progressStatusText.textContent = "Claude AI is reading and reasoning...";
+                progressBar.style.width = '70%';
+
+                const response = await fetchWithRetry(`/api/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'x-api-key': userApiKey,
+                        'anthropic-version': '2023-06-01',
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: "claude-sonnet-5-5",
+                        max_tokens: 8192,
+                        system: systemPrompt,
+                        messages: [{ role: 'user', content: userContent }]
+                    })
+                });
+
+                const result = await response.json();
+                if (result.error) throw new Error(result.error.message);
+
+                progressBar.style.width = '100%';
+                setTimeout(() => {
+                    progressBox.classList.add('hidden'); startOcrBtn.removeAttribute('disabled');
+                    displayTranscribedText(result.content[0].text);
+                }, 400);
+
+            } catch (err) {
+                console.error("Claude Error:", err);
+                showToast("Transcription failed: " + err.message.slice(0, 80), "error");
+                progressBox.classList.add('hidden'); startOcrBtn.removeAttribute('disabled');
+            }
+        });
+
+        // HTML Cleaning & Notebook Rendering
+       function nbClean(raw){
+            if (!raw) raw = ""; // Fallback if API returns empty content
+            raw = raw.replace(/```[a-z]*\n?/gi,'').trim();
+            const doc=new DOMParser().parseFromString('<body>'+raw+'</body>','text/html');
+            doc.querySelectorAll('script,iframe,object,embed,style,link,meta,base,form,foreignObject').forEach(n=>n.remove());
+            doc.body.querySelectorAll('*').forEach(el=>{[...el.attributes].forEach(a=>{
+                const n=a.name.toLowerCase(); if(n.startsWith('on')||n==='href'||n==='src'||n==='srcdoc'||n==='xlink:href')el.removeAttribute(a.name);
+            })});
+            if(!doc.body.querySelector('.page'))doc.body.innerHTML='<section class="page">'+doc.body.innerHTML+'</section>';
+            return doc.body.innerHTML;
+        }
+
+        function renderNotebook(text){
+            editorContent.innerHTML = nbClean(text);
+            applyKaTeX(); updateWordAndCharCounts();
+            saveNote(currentFile ? currentFile.name : 'Notebook', true);
+            showToast("Notebook pages created successfully", "success");
+        }
+
+        // Primary Display Logic handling Markdown, Math, and Mermaid
+        function displayTranscribedText(text) {
+            if (window.lastMode === 'notebook') { renderNotebook(text); return; }
+            
+            const rawHtml = marked.parse(text);
+            const safeHtml = DOMPurify.sanitize(rawHtml, { 
+                ADD_TAGS: ['iframe', 'svg', 'path', 'g', 'circle', 'line', 'polygon', 'polyline', 'rect', 'text'], 
+                ADD_ATTR: ['viewBox', 'stroke', 'stroke-width', 'fill', 'd', 'cx', 'cy', 'r', 'x1', 'y1', 'x2', 'y2', 'points', 'width', 'height', 'x', 'y', 'class', 'role', 'aria-label', 'font-size'] 
+            });
+            
+            editorContent.innerHTML = safeHtml;
+            
+            const codeBlocks = editorContent.querySelectorAll('code.language-mermaid');
+            codeBlocks.forEach(block => {
+                const pre = block.parentElement;
+                const mermaidDiv = document.createElement('div');
+                mermaidDiv.className = 'mermaid'; mermaidDiv.textContent = block.textContent;
+                pre.replaceWith(mermaidDiv);
+            });
+            
+            setTimeout(() => {
+                try { mermaid.run({ nodes: editorContent.querySelectorAll('.mermaid') }); } 
+                catch(e) { console.warn("Mermaid execution skipped/failed", e); }
+                applyKaTeX(); updateWordAndCharCounts();
+            }, 100);
+            
+            saveNote(currentFile ? currentFile.name : 'Untitled', true);
+            showToast("Handwriting transcribed successfully!", "success");
+        }
+
+        new MutationObserver(() => editorContent.classList.toggle('nb', !!editorContent.querySelector('.page')))
+            .observe(editorContent, {childList: true});
+
+        // AI Assisted Actions
+        const ACT={
+            summary:['Summary','Summarize these research notes in a short paragraph followed by 3-5 bullet key takeaways.'],
+            terms:['Key Terms','Extract key terms and concepts from these notes as a bulleted list, each with a one-line definition.'],
+            questions:['Research Questions','Suggest 6 insightful follow-up research questions and gaps worth investigating, as bullets.'],
+            citations:['Citations Found','List every source, author, paper, or reference mentioned. Say if none.'],
+            flashcards:['Flashcards','Create 8 study flashcards. Format each as a bullet: **Q:** question — **A:** answer.'],
+            proofread:['Cleaned Version','Rewrite these OCR notes fixing likely misread words using context, keeping the meaning. Flag uncertain words with [?].']
+        };
+
+        async function claudeText(prompt) {
+            const response = await fetchWithRetry(`/api/chat`, {
+                method: 'POST',
+                headers: {
+                    'x-api-key': userApiKey,
+                    'anthropic-version': '2023-06-01',
+                    'content-type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: "claude-5.5-sonnet",
+                    max_tokens: 4096,
+                    system: "You are a highly capable AI assistant interacting with notes. Rely heavily on structured Markdown.",
+                    messages: [{ role: 'user', content: prompt }]
+                })
+            });
+            const result = await response.json();
+            if (result.error) throw new Error(result.error.message);
+            return result.content[0].text;
+        }
+
+        async function runAction(k, q) {
+            const text = editorContent.innerText.trim();
+            if (!text) { showToast("Transcribe some notes first", "error"); return; }
+            if (!userApiKey) { showToast("Claude API key missing.", "error"); return; }
+            
+            showToast("Claude is analyzing...", "info");
+            try {
+                const out = await claudeText((q || ACT[k][1]) + '\n\nNOTES:\n' + text);
+                addInsight(q ? 'Answer: ' + q : ACT[k][0], out);
+            } catch (e) { showToast("AI Request Failed: " + e.message, "error"); }
+        }
+
+        function askNotes() {
+            const i = document.getElementById('askInput'); const q = i.value.trim(); if (!q) return; i.value = '';
+            runAction('ask', "Answer this question using ONLY the notes below (say if the notes don't cover it): " + q);
+        }
+
+        function addInsight(title, out) {
+            const d = document.createElement('div');
+            d.className = 'p-3 rounded-xl border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-950/20 text-sm';
+            const safeHtml = DOMPurify.sanitize(marked.parse(out));
+            d.innerHTML = `<div class="flex justify-between items-center mb-1"><b class="text-xs text-indigo-600 dark:text-indigo-300">${escapeHtml(title)}</b><span class="text-xs space-x-2"><button class="ins text-indigo-500">Insert</button><button class="cp text-slate-500">Copy</button></span></div><div class="rich">${safeHtml}</div>`;
+            d.querySelector('.ins').onclick = () => { editorContent.insertAdjacentHTML('beforeend', `<h2>${escapeHtml(title)}</h2>` + safeHtml); applyKaTeX(); updateWordAndCharCounts(); };
+            d.querySelector('.cp').onclick = () => navigator.clipboard.writeText(out).then(() => showToast("Copied", "success"));
+            document.getElementById('insights').prepend(d);
+            applyKaTeX();
+        }
+
+        // Library & History
+        const HK = 'inkscript_history';
+        const getHist = () => { try { return JSON.parse(localStorage.getItem(HK) || '[]') } catch (e) { return [] } };
+        
+        function saveNote(title, silent) {
+            const html = editorContent.innerHTML; if (!editorContent.innerText.trim()) { showToast("Nothing to save", "error"); return; }
+            if (typeof title !== 'string') title = prompt("Note title:", currentFile ? currentFile.name : "Untitled") || "Untitled";
+            const h = getHist(); h.unshift({ id: Date.now(), title, html, ts: new Date().toLocaleString() });
+            try { localStorage.setItem(HK, JSON.stringify(h.slice(0, 50))) } catch (e) { showToast("Storage full", "error") }
+            renderHistory(); if (!silent) showToast("Saved to library", "success");
+        }
+
+        function renderHistory() {
+            const q = (document.getElementById('histSearch').value || '').toLowerCase();
+            const items = getHist().filter(n => (n.title + ' ' + n.html.replace(/<[^>]+>/g, ' ')).toLowerCase().includes(q));
+            document.getElementById('histList').innerHTML = items.length ? items.map(n => `<div class="flex items-center justify-between gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-800"><button onclick="loadNote(${n.id})" class="text-left flex-1 truncate"><b>${escapeHtml(n.title)}</b><br><span class="text-slate-500">${n.ts}</span></button><button onclick="delNote(${n.id})" class="text-rose-500 px-1">✕</button></div>`).join('') : '<p class="text-slate-500">No saved notes.</p>';
+        }
+
+        function loadNote(id) { const n = getHist().find(x => x.id === id); if (n) { editorContent.innerHTML = n.html; applyKaTeX(); updateWordAndCharCounts(); showToast("Loaded: " + n.title, "info") } }
+        function delNote(id) { try { localStorage.setItem(HK, JSON.stringify(getHist().filter(x => x.id !== id))) } catch (e) {} renderHistory() }
+        renderHistory();
+
+        // Utilities
+        function updateWordAndCharCounts() {
+            const text = editorContent.innerText || "";
+            wordCountEl.textContent = text.trim() ? text.trim().split(/\s+/).length : 0;
+            charCountEl.textContent = text.length;
+        }
+        editorContent.addEventListener('input', updateWordAndCharCounts);
+
+        function escapeHtml(text) { return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+        function formatText(command) { document.execCommand(command, false, null); editorContent.focus(); }
+        function insertTag(openTag, closeTag) { const r = window.getSelection().getRangeAt(0); const w = document.createElement('span'); w.innerHTML = `${openTag}${r.toString() || 'Heading'}${closeTag}`; r.deleteContents(); r.insertNode(w.firstChild); updateWordAndCharCounts(); }
+        function insertList() { document.execCommand('insertUnorderedList', false, null); editorContent.focus(); }
+        function clearFormatting() { editorContent.innerHTML = `<p>${editorContent.innerText.replace(/\n/g, '</p><p>')}</p>`; updateWordAndCharCounts(); }
+        function copyToClipboard() { navigator.clipboard.writeText(editorContent.innerText).then(() => showToast("Copied to clipboard", "success")); }
+        
+        function downloadPdf() {
+    if (!editorContent.innerText.trim()) { 
+        showToast("No text available to export.", "error"); 
+        return; 
+    }
+    
+    // Use the uploaded filename or a default title
+    const title = currentFile ? currentFile.name.replace(/\.[^.]+$/, '') : 'InkScript_Notes';
+    
+    // Open a temporary background window
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) { 
+        showToast("Please allow pop-ups to generate the PDF.", "error"); 
+        return; 
+    }
+    
+    // Clone the content to capture the already-rendered Math and SVG nodes
+    const content = editorContent.cloneNode(true);
+    
+    const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>${title}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+        <style>
+            body { 
+                font-family: 'Inter', sans-serif; 
+                line-height: 1.6; 
+                color: #000; 
+                background: #fff;
+                max-width: 800px; 
+                margin: 0 auto; 
+                padding: 40px 20px; 
+            }
+            h1, h2, h3 { margin-top: 1.5em; margin-bottom: 0.5em; color: #111; }
+            p, li { margin-bottom: 0.5em; color: #333; }
+            table { border-collapse: collapse; width: 100%; margin: 1.5em 0; font-size: 0.9em; }
+            th, td { border: 1px solid #cbd5e1; padding: 12px; text-align: left; }
+            th { background-color: #f8fafc; font-weight: 600; }
+            
+            /* Force Mermaid SVGs to print clearly, overriding dark mode colors if active */
+            svg { max-width: 100%; height: auto; page-break-inside: avoid; }
+            svg text { fill: #000 !important; stroke: none !important; }
+            .mermaid { display: flex; justify-content: center; margin: 2rem 0; page-break-inside: avoid; }
+            
+            @media print {
+                body { padding: 0; }
+                @page { margin: 0.75in; }
+            }
+        </style>
+    </head>
+    <body>
+        ${content.innerHTML}
+        <script>
+            window.onload = () => {
+                // A small 500ms delay ensures web fonts and KaTeX stylesheets finish loading
+                setTimeout(() => {
+                    window.print();
+                }, 500); 
+            };
+        <\/script>
+    </body>
+    </html>`;
+    
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+    
+    showToast("Opening PDF generator...", "success");
+}
+
+
+        function downloadMd() {
+            const t = editorContent.innerText; if (!t.trim()) { showToast("No text available", "error"); return; }
+            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], { type: 'text/markdown' })); a.download = 'transcription.md'; a.click();
+        }
+
+        document.getElementById('clearAllBtn').addEventListener('click', () => {
+            currentFile = null; fileType = null; pdfDoc = null; fileInput.value = ''; imagePreview.src = '';
+            imagePreview.classList.add('hidden'); pdfPreviewContainer.classList.add('hidden'); previewCard.classList.add('hidden');
+            progressBox.classList.add('hidden'); startOcrBtn.setAttribute('disabled', 'true');
+            editorContent.innerHTML = ''; updateWordAndCharCounts(); showToast("Workspace reset", "info");
+        });
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            const icon = document.getElementById('toastIcon');
+            icon.setAttribute('data-lucide', type === 'success' ? 'check-circle' : (type === 'error' ? 'alert-circle' : 'info'));
+            icon.className = `w-4 h-4 ${type === 'success' ? 'text-emerald-400' : (type === 'error' ? 'text-rose-400' : 'text-indigo-400')}`;
+            lucide.createIcons();
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 4000);
+        }
+
+        function nbSource() {
+            const c = editorContent.cloneNode(true);
+            c.querySelectorAll('mark.hl').forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
+            c.querySelectorAll('.katex').forEach(k => {
+                const a = k.querySelector('annotation[encoding="application/x-tex"]'); if (!a) return;
+                const disp = k.closest('.katex-display'); (disp || k).replaceWith(document.createTextNode(disp ? '$$' + a.textContent + '$$' : '$' + a.textContent + '$'));
+            });
+            return c.innerHTML;
+        }
+
+        function nbDoc() {
+            const K = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/';
+            return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Notebook</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap"><link rel="stylesheet" href="${K}katex.min.css"><style>body{margin:0;background:#d9dde6}.wrap{max-width:760px;margin:0 auto;padding:16px 10px}.nb{font-family:'Kalam',cursive}.nb .page{color:#1b2a8a;background:#fdfdfb;margin:0 0 22px;padding:14px 22px 40px 34px;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.25)}.nb .l{min-height:36px;line-height:36px;font-size:19px;white-space:nowrap;margin:0}</style></head><body><div class="wrap"><div class="nb">${nbSource()}</div></div><script src="${K}katex.min.js"><\/script><script src="${K}contrib/auto-render.min.js"><\/script><script>window.addEventListener("load",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}]});});<\/script></body></html>`;
+        }
+        
+        function nbDownload() {
+            if (!editorContent.querySelector('.page')) { showToast("Create notebook pages first.", "error"); return; }
+            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([nbDoc()], { type: 'text/html' }));
+            a.download = 'digital_notebook.html'; document.body.appendChild(a); a.click(); a.remove();
+        }
+    </script>
+</body>
+</html>
